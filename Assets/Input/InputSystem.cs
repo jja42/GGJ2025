@@ -607,6 +607,24 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Pan"",
+                    ""type"": ""Value"",
+                    ""id"": ""de820325-c171-4639-9097-3dbda7de1c28"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Zoom"",
+                    ""type"": ""Value"",
+                    ""id"": ""0a5dc687-8a1d-4fa4-89ad-501a88a8d7b1"",
+                    ""expectedControlType"": ""Axis"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -618,6 +636,72 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""RightClick"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""2D Vector"",
+                    ""id"": ""d7d1a837-8077-4984-bca7-a6391d004c72"",
+                    ""path"": ""2DVector"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pan"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""up"",
+                    ""id"": ""7cd5b614-f6ad-4506-a853-2a5d1a4aad51"",
+                    ""path"": ""<Keyboard>/upArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pan"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""down"",
+                    ""id"": ""ed34adbd-f035-4c70-a913-931282689a1e"",
+                    ""path"": ""<Keyboard>/downArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pan"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""left"",
+                    ""id"": ""a33c9e3f-7d2f-4357-b7aa-5bf3474ad2f0"",
+                    ""path"": ""<Keyboard>/leftArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pan"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""right"",
+                    ""id"": ""ef90135d-9f41-4033-b6cb-9ac70f402b1c"",
+                    ""path"": ""<Keyboard>/rightArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pan"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2550a3b5-af72-4ecb-b7de-07db97d8b3f4"",
+                    ""path"": ""<Mouse>/scroll/y"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Zoom"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -708,6 +792,8 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
         // Overworld
         m_Overworld = asset.FindActionMap("Overworld", throwIfNotFound: true);
         m_Overworld_RightClick = m_Overworld.FindAction("RightClick", throwIfNotFound: true);
+        m_Overworld_Pan = m_Overworld.FindAction("Pan", throwIfNotFound: true);
+        m_Overworld_Zoom = m_Overworld.FindAction("Zoom", throwIfNotFound: true);
     }
 
     ~@InputSystem()
@@ -910,7 +996,9 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
         {
             if (instance == null || m_Wrapper.m_StoryActionsCallbackInterfaces.Contains(instance)) return;
             m_Wrapper.m_StoryActionsCallbackInterfaces.Add(instance);
+            @ContinueStory.started += instance.OnContinueStory;
             @ContinueStory.performed += instance.OnContinueStory;
+            @ContinueStory.canceled += instance.OnContinueStory;
         }
 
         private void UnregisterCallbacks(IStoryActions instance)
@@ -954,7 +1042,9 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
         {
             if (instance == null || m_Wrapper.m_IntroActionsCallbackInterfaces.Contains(instance)) return;
             m_Wrapper.m_IntroActionsCallbackInterfaces.Add(instance);
+            @ContinueIntro.started += instance.OnContinueIntro;
             @ContinueIntro.performed += instance.OnContinueIntro;
+            @ContinueIntro.canceled += instance.OnContinueIntro;
         }
 
         private void UnregisterCallbacks(IIntroActions instance)
@@ -984,11 +1074,15 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_Overworld;
     private List<IOverworldActions> m_OverworldActionsCallbackInterfaces = new List<IOverworldActions>();
     private readonly InputAction m_Overworld_RightClick;
+    private readonly InputAction m_Overworld_Pan;
+    private readonly InputAction m_Overworld_Zoom;
     public struct OverworldActions
     {
         private @InputSystem m_Wrapper;
         public OverworldActions(@InputSystem wrapper) { m_Wrapper = wrapper; }
         public InputAction @RightClick => m_Wrapper.m_Overworld_RightClick;
+        public InputAction @Pan => m_Wrapper.m_Overworld_Pan;
+        public InputAction @Zoom => m_Wrapper.m_Overworld_Zoom;
         public InputActionMap Get() { return m_Wrapper.m_Overworld; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1001,6 +1095,12 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
             @RightClick.started += instance.OnRightClick;
             @RightClick.performed += instance.OnRightClick;
             @RightClick.canceled += instance.OnRightClick;
+            @Pan.started += instance.OnPan;
+            @Pan.performed += instance.OnPan;
+            @Pan.canceled += instance.OnPan;
+            @Zoom.started += instance.OnZoom;
+            @Zoom.performed += instance.OnZoom;
+            @Zoom.canceled += instance.OnZoom;
         }
 
         private void UnregisterCallbacks(IOverworldActions instance)
@@ -1008,6 +1108,12 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
             @RightClick.started -= instance.OnRightClick;
             @RightClick.performed -= instance.OnRightClick;
             @RightClick.canceled -= instance.OnRightClick;
+            @Pan.started -= instance.OnPan;
+            @Pan.performed -= instance.OnPan;
+            @Pan.canceled -= instance.OnPan;
+            @Zoom.started -= instance.OnZoom;
+            @Zoom.performed -= instance.OnZoom;
+            @Zoom.canceled -= instance.OnZoom;
         }
 
         public void RemoveCallbacks(IOverworldActions instance)
@@ -1094,5 +1200,7 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
     public interface IOverworldActions
     {
         void OnRightClick(InputAction.CallbackContext context);
+        void OnPan(InputAction.CallbackContext context);
+        void OnZoom(InputAction.CallbackContext context);
     }
 }

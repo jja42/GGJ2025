@@ -13,6 +13,11 @@ public class OverworldUI : MonoBehaviour
     public List<TextMeshProUGUI> UnitStats;
     public GameObject UnitStatsUI;
 
+    public GameObject playerBanner;
+    public GameObject enemyBanner;
+    public GameObject combatText;
+    public List<TextMeshProUGUI> attackText;
+
     private void Awake()
     {
         instance = this;
@@ -61,7 +66,7 @@ public class OverworldUI : MonoBehaviour
     public void UnitMenuAttack()
     {
         Unit unit = OverworldManager.instance.selected_unit;
-        List<TileSystem.Node> nodes = TileSystem.instance.CalculateAttack(unit.transform.position, unit.range);
+        List<TileSystem.Node> nodes = TileSystem.instance.CalculateAttack(unit.transform.position, unit.range, unit.type);
         TileSystem.instance.GenerateAttackHighlights(nodes);
         CloseUnitMenu();
     }
@@ -69,6 +74,12 @@ public class OverworldUI : MonoBehaviour
     public void UnitMenuItems()
     {
 
+    }
+
+    public void UnitMenuPass()
+    {
+        OverworldManager.instance.Pass();
+        CloseUnitMenu();
     }
 
     public void UnitMenuStats()
@@ -81,5 +92,49 @@ public class OverworldUI : MonoBehaviour
         UnitStats[3].text = unit.defense.ToString();
         UnitStats[4].text = unit.range.ToString();
         UnitStats[5].text = unit.speed.ToString();
+    }
+
+
+    public IEnumerator PlayerBanner()
+    {
+        playerBanner.SetActive(true);
+        yield return new WaitForSecondsRealtime(.75f);
+        playerBanner.SetActive(false);
+        yield return null;
+    }
+
+    public IEnumerator EnemyBanner()
+    {
+        enemyBanner.SetActive(true);
+        yield return new WaitForSecondsRealtime(.75f);
+        enemyBanner.SetActive(false);
+
+        yield return new WaitForSecondsRealtime(.5f);
+        StartCoroutine(OverworldManager.instance.ProcessEnemyTurn());
+        yield return null;
+    }
+
+    public void Victory()
+    {
+        GameManager.instance.loadedStory = "Victory";
+        GameManager.instance.loadedMusic = GameManager.instance.MusicFiles[0];
+        GameManager.instance.LoadScene("StoryScene");
+    }
+
+    public void Loss()
+    {
+        GameManager.instance.loadedStory = "Loss";
+        GameManager.instance.loadedMusic = GameManager.instance.MusicFiles[2];
+        GameManager.instance.LoadScene("StoryScene");
+    }
+
+    public IEnumerator CombatText(Unit attacker, Unit target, int damage)
+    {
+        combatText.SetActive(true);
+        attackText[0].text = attacker.Name + " Dealt " + damage + " Damage to " + target.Name + " !";
+        attackText[1].text = "(" + attacker.damage + " ATK - " + target.defense + " DEF)";
+        attackText[2].text = target.Name + " HP: " + target.health + " / " + target.maxHealth;
+        yield return new WaitForSecondsRealtime(2.5f);
+        combatText.SetActive(false);
     }
 }

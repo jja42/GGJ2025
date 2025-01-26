@@ -16,8 +16,9 @@ public class Unit : MonoBehaviour, IPointerClickHandler
     public int damage;
     public int defense;
     public float moveSpeed = 2.5f;
-    List<Vector3> path;
+    protected List<Vector3> path;
     HealthBar healthBar;
+    public OverworldManager.UnitType type;
 
     // Start is called before the first frame update
     protected virtual void Start()
@@ -35,7 +36,8 @@ public class Unit : MonoBehaviour, IPointerClickHandler
             {
                 if (OverworldManager.instance.selected_unit == null)
                 {
-                    //Show Status
+                    OverworldManager.instance.selected_unit = this;
+                    OverworldUI.instance.UnitMenuStats();
                 }
             }
         }
@@ -43,10 +45,7 @@ public class Unit : MonoBehaviour, IPointerClickHandler
 
     public void Movement(Vector3 destination)
     {
-        TileSystem.instance.UpdateNode(TileSystem.instance.GetNode(transform.position), false, false);
-        TileSystem.instance.UpdateNode(TileSystem.instance.GetNode(destination), false, true);
         path = TileSystem.instance.GetPath(transform.position, destination);
-        Moved = true;
         ParseMovement();
     }
 
@@ -58,7 +57,7 @@ public class Unit : MonoBehaviour, IPointerClickHandler
         StartCoroutine(Move(destination));
     }
 
-    IEnumerator Move(Vector3 dest)
+    protected IEnumerator Move(Vector3 dest)
     {
         float t = 0;
         Vector3 startPos = transform.position;
@@ -74,25 +73,46 @@ public class Unit : MonoBehaviour, IPointerClickHandler
         {
             ParseMovement();
         }
+        else
+        {
+            Moved = true;
+            if(type == OverworldManager.UnitType.ally)
+            {
+                OverworldUI.instance.OpenUnitMenu();
+            }
+            GameManager.instance.canInterrupt = true;
+        }
 
         yield return null;
     }
 
     public void Attack(Unit target)
     {
-        print(Name + " Attacks " + target.Name + "!");
+        Acted = true;
         target.TakeDamage(damage, this);
         TileSystem.instance.ClearHighlights();
-        GameManager.instance.canInterrupt = false;
+        StartCoroutine(OverworldUI.instance.CombatText(this, target, damage - target.defense));
     }
 
     public void TakeDamage(int Damage, Unit Attacker)
     {
         Damage = Damage - defense;
-        print(Attacker.Name + " Deals " + Damage.ToString() + " Damage to " + Name + "!");
         health -= Damage;
         health = Mathf.Max(health, 0);
         healthBar.SetHealth(health);
-        GameManager.instance.canInterrupt = true;
+        if (health == 0)
+        {
+            GameManager.instance.units.Remove(this);
+            if(type == OverworldManager.UnitType.enemy)
+            {
+                GameManager.instance.enemyCount--;
+            }
+            else
+            {
+                GameManager.instance.allyCount--;
+            }
+            TileSystem.instance.UpdateNode(TileSystem.instance.GetNode(transform.position), false, false);
+            Destroy(gameObject);
+        }
     }
 }

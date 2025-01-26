@@ -10,7 +10,7 @@ public class AttackSquare : MonoBehaviour, IPointerClickHandler
         {
             if(TileSystem.instance.GetUnit(transform.position) != null)
             {
-                OverworldManager.instance.selected_unit.Attack(TileSystem.instance.GetUnit(transform.position));
+                OverworldManager.instance.Attack(TileSystem.instance.GetUnit(transform.position));
             }
         }
     }

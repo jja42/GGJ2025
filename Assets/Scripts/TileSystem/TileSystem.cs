@@ -28,7 +28,7 @@ public class TileSystem : MonoBehaviour
         {
             for (int j = 0; j < max_y; j++)
             {
-                grid[i, j] = new Node(new Vector3(i - (max_x / 2), (j + 1) - (max_y / 2)), i, j);
+                grid[i, j] = new Node(new Vector3(i - (max_x / 2), j  - (max_y / 2)), i, j);
                 UpdateNode(grid[i, j], CheckNodeWall(grid[i, j].pos), NodeOccupied(grid[i,j].pos));
             }
         }
@@ -215,7 +215,7 @@ public class TileSystem : MonoBehaviour
         {
             return null;
         }
-        return grid[x + (max_x / 2), (y - 1) + (max_y / 2)];
+        return grid[x + (max_x / 2), y + (max_y / 2)];
     }
 
     public void UpdateNode(Node n, bool isWall, bool isOccupied)
@@ -304,88 +304,132 @@ public class TileSystem : MonoBehaviour
         return MovementNodes;
     }
 
-    public List<Node> CalculateAttack(Vector3 start_pos, int distance)
+    public List<Node> CalculateAttack(Vector3 start_pos, int distance, OverworldManager.UnitType type)
     {
+        //Where we start
+        Node start = GetNode(start_pos);
+        //Track which nodes we can attack to
         List<Node> AttackNodes = new List<Node>();
 
-        Node node = GetNode(start_pos);
+        //List to iterate through
+        List<Node> to_check = new List<Node>();
+        to_check.Add(start);
+        //Node to check for neighbors
+        Node current = start;
 
-        for (int i = 0; i < distance; i++)
+        while (to_check.Count > 0)
         {
-            //Left
-            if (node.x - i > 0)
+            //Get neighbors
+            current.Neighbors = GetAttackNeighbors(current);
+            foreach (Node n in current.Neighbors)
             {
-                if (!grid[node.x - 1 - i, node.y].isWall)
+                //if it's not in our accessible nodes list and it's not the starting position
+                if (!AttackNodes.Contains(n) && n != start)
                 {
-                    AttackNodes.Add(grid[node.x - 1 - i, node.y]);
-                }
-
-                //Left Down
-                if(node.y - i > 0)
-                {
-                    if (!grid[node.x - 1 - i, node.y - 1 - i].isWall)
+                    //get a movement cost based on the cost of our current plus the movement cost to the neighbor
+                    n.f_cost = current.f_cost + GetTileMovement(n);
+                    if (n.hasUnit)
                     {
-                        AttackNodes.Add(grid[node.x - 1 - i, node.y - 1 - i]);
+                        Unit unit = GetUnit(n.pos);
+                        if (unit.type == type)
+                        {
+                            n.f_cost += 100; //if occupied by same side, inaccessible
+                        }
                     }
-                }
-
-                //Left Up
-                if (node.y + 1 + i < max_y)
-                {
-                    if (!grid[node.x - 1 - i, node.y + 1 + i].isWall)
+                    //if the movement cost is lower or equal to our range, add it to accessible nodes and check its neighbors
+                    if (n.f_cost <= distance)
                     {
-                        AttackNodes.Add(grid[node.x - 1 - i, node.y + 1 + i]);
-                    }
-                }
-            }
-
-            //Right
-            if (node.x + 1 + i < max_x)
-            {
-                if (!grid[node.x + 1 + i, node.y].isWall)
-                {
-                    AttackNodes.Add(grid[node.x + 1 + i, node.y]);
-                }
-
-                //Right Down
-                if (node.y - i > 0)
-                {
-                    if (!grid[node.x + 1 + i, node.y - 1 - i].isWall)
-                    {
-                        AttackNodes.Add(grid[node.x + 1 + i, node.y - 1 - i]);
-                    }
-                }
-
-                //Right Up
-                if (node.y + 1 + i < max_y)
-                {
-                    if (!grid[node.x + 1 + i, node.y + 1 + i].isWall)
-                    {
-                        AttackNodes.Add(grid[node.x + 1 + i, node.y + 1 + i]);
+                        AttackNodes.Add(n);
+                        to_check.Add(n);
                     }
                 }
             }
+            to_check.Remove(current);
 
-            //Up
-            if (node.y - i > 0)
+            if (to_check.Count > 0)
+                current = to_check[0];
+        }
+
+        ClearCosts();
+
+        return AttackNodes;
+    }
+
+    List<Node> GetAttackNeighbors(Node node)
+    {
+        List<Node> Neighbors = new List<Node>();
+        //Left
+        if (node.x > 0)
+        {
+            if (!grid[node.x - 1, node.y].isWall)
             {
-                if (!grid[node.x, node.y - 1 - i].isWall)
+                Neighbors.Add(grid[node.x - 1, node.y]);
+            }
+
+            //Left Down
+            if (node.y > 0)
+            {
+                if (!grid[node.x - 1, node.y - 1].isWall)
                 {
-                    AttackNodes.Add(grid[node.x, node.y - 1 - i]);
+                    Neighbors.Add(grid[node.x - 1, node.y - 1]);
                 }
             }
 
-            //Down
-            if (node.y + 1 + i < max_y)
+            //Left Up
+            if (node.y + 1 < max_y)
             {
-                if (!grid[node.x, node.y + 1 + i].isWall)
+                if (!grid[node.x - 1, node.y + 1].isWall)
                 {
-                    AttackNodes.Add(grid[node.x, node.y + 1 + i]);
+                    Neighbors.Add(grid[node.x - 1, node.y + 1]);
                 }
             }
         }
 
-        return AttackNodes;
+        //Right
+        if (node.x + 1 < max_x)
+        {
+            if (!grid[node.x + 1, node.y].isWall)
+            {
+                Neighbors.Add(grid[node.x + 1, node.y]);
+            }
+
+            //Right Down
+            if (node.y > 0)
+            {
+                if (!grid[node.x + 1, node.y - 1].isWall)
+                {
+                    Neighbors.Add(grid[node.x + 1, node.y - 1]);
+                }
+            }
+
+            //Right Up
+            if (node.y + 1 < max_y)
+            {
+                if (!grid[node.x + 1, node.y + 1].isWall)
+                {
+                    Neighbors.Add(grid[node.x + 1, node.y + 1]);
+                }
+            }
+        }
+
+        //Up
+        if (node.y > 0)
+        {
+            if (!grid[node.x, node.y - 1].isWall)
+            {
+                Neighbors.Add(grid[node.x, node.y - 1]);
+            }
+        }
+
+        //Down
+        if (node.y + 1 < max_y)
+        {
+            if (!grid[node.x, node.y + 1].isWall)
+            {
+                Neighbors.Add(grid[node.x, node.y + 1]);
+            }
+        }
+        return Neighbors;
     }
 
     //Create highlights for accessible movement nodes

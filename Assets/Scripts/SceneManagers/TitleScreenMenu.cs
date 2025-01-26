@@ -9,6 +9,7 @@ public class TitleScreenMenu : MonoBehaviour
     public GameObject Attributions1;
     public GameObject Attributions2;
     public GameObject Attributions3;
+    public GameObject Attributions4;
 
     public void Begin()
     {
@@ -38,6 +39,7 @@ public class TitleScreenMenu : MonoBehaviour
         Attributions1.SetActive(true);
         Attributions2.SetActive(false);
         Attributions3.SetActive(false);
+        Attributions4.SetActive(false);
     }
 
     public void AttributionsPage2()
@@ -49,9 +51,14 @@ public class TitleScreenMenu : MonoBehaviour
 
     public void AttributionsPage3()
     {
-        Attributions1.SetActive(false);
         Attributions2.SetActive(false);
         Attributions3.SetActive(true);
+        Attributions4.SetActive(false);
+    }
+    public void AttributionsPage4()
+    {
+        Attributions3.SetActive(false);
+        Attributions4.SetActive(true);
     }
 
     public void CloseInstructions()
@@ -73,5 +80,10 @@ public class TitleScreenMenu : MonoBehaviour
     public void Exit()
     {
         Application.Quit();
+    }
+
+    public void Title()
+    {
+        GameManager.instance.LoadScene("TitleScene");
     }
 }

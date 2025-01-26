@@ -12,18 +12,18 @@ public class Player : Unit
 
     public override void OnPointerClick(PointerEventData eventData)
     {
-        if (GameManager.instance.canInterrupt)
+        if (GameManager.instance.canInterrupt && OverworldManager.instance.turn == OverworldManager.UnitType.ally)
         {
             if (eventData.button == PointerEventData.InputButton.Left)
             {
-                if (OverworldManager.instance.selected_unit == null)
+                OverworldManager.instance.selected_unit = this;
+                if (!Acted)
                 {
-                    OverworldManager.instance.selected_unit = this;
                     OverworldUI.instance.OpenUnitMenu();
                 }
                 else
                 {
-                    OverworldUI.instance.OpenUnitMenu();
+                    OverworldUI.instance.UnitMenuStats();
                 }
             }
         }

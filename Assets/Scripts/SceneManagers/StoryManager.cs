@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using UnityEngine.InputSystem;
 
 public class StoryManager : MonoBehaviour, InputSystem.IStoryActions
 {
@@ -19,13 +20,16 @@ public class StoryManager : MonoBehaviour, InputSystem.IStoryActions
     public Image characterRight;
     public bool more_dialogue = false;
     public List<Sprite> characterSprites;
+    public AudioSource source;
 
     private void Start()
     {
         instance = this;
         GameManager.instance.input.Story.SetCallbacks(this);
         GameManager.instance.input.Story.Enable();
-        PlayDialogue("Intro");
+        PlayDialogue(GameManager.instance.loadedStory);
+        source.resource = GameManager.instance.loadedMusic;
+        source.Play();
     }
 
     public void PlayDialogue(string name)
@@ -114,8 +118,11 @@ public class StoryManager : MonoBehaviour, InputSystem.IStoryActions
         return sprite;
     }
 
-    public void OnContinueStory(UnityEngine.InputSystem.InputAction.CallbackContext context)
+    public void OnContinueStory(InputAction.CallbackContext context)
     {
-        ContinueStory();
+        if (context.phase == InputActionPhase.Performed)
+        {
+            ContinueStory();
+        }
     }
 }

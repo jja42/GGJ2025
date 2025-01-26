@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class IntroManager : MonoBehaviour, InputSystem.IIntroActions
 {
@@ -23,12 +24,17 @@ public class IntroManager : MonoBehaviour, InputSystem.IIntroActions
         else
         {
             GameManager.instance.input.Intro.Disable();
+            GameManager.instance.loadedStory = "Intro";
+            GameManager.instance.loadedMusic = GameManager.instance.MusicFiles[1];
             GameManager.instance.LoadScene("StoryScene");
         }
     }
 
-    public void OnContinueIntro(UnityEngine.InputSystem.InputAction.CallbackContext context)
+    public void OnContinueIntro(InputAction.CallbackContext context)
     {
-        ContinueIntro();
+        if (context.phase == InputActionPhase.Performed)
+        {
+            ContinueIntro();
+        }
     }
 }
