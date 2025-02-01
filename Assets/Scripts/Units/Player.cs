@@ -16,6 +16,7 @@ public class Player : Unit
         {
             if (eventData.button == PointerEventData.InputButton.Left)
             {
+                TileSystem.instance.ClearHighlights();
                 OverworldManager.instance.selected_unit = this;
                 if (!Acted)
                 {

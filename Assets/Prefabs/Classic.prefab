@@ -375,11 +375,10 @@ MonoBehaviour:
   Moved: 0
   health: 20
   maxHealth: 20
-  speed: 4
+  speed: 5
   range: 1
   damage: 12
   defense: 4
-  moveSpeed: 2.5
   type: 0
 --- !u!61 &1679300551696520008
 BoxCollider2D:

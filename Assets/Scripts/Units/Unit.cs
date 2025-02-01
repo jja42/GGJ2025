@@ -15,7 +15,7 @@ public class Unit : MonoBehaviour, IPointerClickHandler
     public int range;
     public int damage;
     public int defense;
-    public float moveSpeed = 2.5f;
+    protected float moveSpeed = 4.5f;
     protected List<Vector3> path;
     HealthBar healthBar;
     public OverworldManager.UnitType type;
@@ -34,6 +34,7 @@ public class Unit : MonoBehaviour, IPointerClickHandler
         {
             if (eventData.button == PointerEventData.InputButton.Left)
             {
+                TileSystem.instance.ClearHighlights();
                 if (OverworldManager.instance.selected_unit == null)
                 {
                     OverworldManager.instance.selected_unit = this;
@@ -102,14 +103,13 @@ public class Unit : MonoBehaviour, IPointerClickHandler
         healthBar.SetHealth(health);
         if (health == 0)
         {
-            GameManager.instance.units.Remove(this);
             if(type == OverworldManager.UnitType.enemy)
             {
-                GameManager.instance.enemyCount--;
+                GameManager.instance.enemies.Remove(this);
             }
             else
             {
-                GameManager.instance.allyCount--;
+                GameManager.instance.allies.Remove(this);
             }
             TileSystem.instance.UpdateNode(TileSystem.instance.GetNode(transform.position), false, false);
             Destroy(gameObject);

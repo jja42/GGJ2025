@@ -45,11 +45,11 @@ public class OverworldManager : MonoBehaviour, InputSystem.IOverworldActions
     //Spawn units at designated positions
     public void LoadUnits()
     {
-        SpawnUnit(UnitType.ally, 1, new Vector3(-2, -9));
-        SpawnUnit(UnitType.ally, 2, new Vector3(-4, -10));
-        SpawnUnit(UnitType.ally, 3, new Vector3(-7, -9));
-        SpawnUnit(UnitType.ally, 4, new Vector3(-1, -6));
-        SpawnUnit(UnitType.ally, 5, new Vector3(-7, -7));
+        //SpawnUnit(UnitType.ally, 1, new Vector3(-2, -9));
+        //SpawnUnit(UnitType.ally, 2, new Vector3(-4, -10));
+        //SpawnUnit(UnitType.ally, 3, new Vector3(-7, -9));
+        //SpawnUnit(UnitType.ally, 4, new Vector3(-1, -6));
+        //SpawnUnit(UnitType.ally, 5, new Vector3(-7, -7));
         SpawnUnit(UnitType.ally, 6, new Vector3(-3, -7));
         SpawnUnit(UnitType.enemy, 0, new Vector3(-16, 2));
         SpawnUnit(UnitType.enemy, 0, new Vector3(15, -2));
@@ -65,14 +65,13 @@ public class OverworldManager : MonoBehaviour, InputSystem.IOverworldActions
         GameObject obj = Instantiate(unit_objects[unitIndex], position, Quaternion.identity);
         Unit unit = obj.GetComponent<Unit>();
         unit.type = type;
-        GameManager.instance.units.Add(unit);
         if(type == UnitType.ally)
         {
-            GameManager.instance.allyCount++;
+            GameManager.instance.allies.Add(unit);
         }
         if(type == UnitType.enemy)
         {
-            GameManager.instance.enemyCount++;
+            GameManager.instance.enemies.Add(unit);
         }
     }
 
@@ -109,24 +108,21 @@ public class OverworldManager : MonoBehaviour, InputSystem.IOverworldActions
 
     void CheckPlayerTurnEnd()
     {
-        if(GameManager.instance.enemyCount == 0)
+        if(GameManager.instance.enemies.Count == 0)
         {
             Victory();
             return;
         }
 
         int allyActedCount = 0;
-        foreach (Unit unit in GameManager.instance.units)
+        foreach (Unit unit in GameManager.instance.allies)
         {
-            if (unit.type == UnitType.ally)
+            if (unit.Acted)
             {
-                if (unit.Acted)
-                {
-                    allyActedCount++;
-                }
+                allyActedCount++;
             }
         }
-        if (allyActedCount == GameManager.instance.allyCount)
+        if (allyActedCount == GameManager.instance.allies.Count)
         {
             EndPlayerTurn();
         }
@@ -146,7 +142,6 @@ public class OverworldManager : MonoBehaviour, InputSystem.IOverworldActions
 
     void EndPlayerTurn()
     {
-        ClearUnitFlags();
         turn = UnitType.enemy;
         StartCoroutine(OverworldUI.instance.EnemyBanner());
         GameManager.instance.canInterrupt = false;
@@ -165,35 +160,38 @@ public class OverworldManager : MonoBehaviour, InputSystem.IOverworldActions
     {
         GameManager.instance.canInterrupt = false;
         selected_unit.Attack(unit);
-        CheckPlayerTurnEnd();
+        if (GameManager.instance.allies.Contains(selected_unit))
+        {
+            CheckPlayerTurnEnd();
+        }
         GameManager.instance.canInterrupt = true;
     }
 
     public void Pass()
     {
         selected_unit.Acted = true;
-        CheckPlayerTurnEnd();
+        if (GameManager.instance.allies.Contains(selected_unit))
+        {
+            CheckPlayerTurnEnd();
+        }
     }
 
     void CheckEnemyTurnEnd()
     {
-        if (GameManager.instance.allyCount == 0)
+        if (GameManager.instance.allies.Count == 0)
         {
             Loss();
             return;
         }
         int enemyActedCount = 0;
-        foreach (Unit unit in GameManager.instance.units)
+        foreach (Unit unit in GameManager.instance.enemies)
         {
-            if (unit.type == UnitType.enemy)
+            if (unit.Acted)
             {
-                if (unit.Acted)
-                {
-                    enemyActedCount++;
-                }
+                enemyActedCount++;
             }
         }
-        if (enemyActedCount == GameManager.instance.enemyCount)
+        if (enemyActedCount == GameManager.instance.enemies.Count)
         {
             EndEnemyTurn();
         }
@@ -202,7 +200,12 @@ public class OverworldManager : MonoBehaviour, InputSystem.IOverworldActions
     //Resets Unit Flags after turn end
     void ClearUnitFlags()
     {
-        foreach (Unit unit in GameManager.instance.units)
+        foreach (Unit unit in GameManager.instance.allies)
+        {
+            unit.Acted = false;
+            unit.Moved = false;
+        }
+        foreach (Unit unit in GameManager.instance.enemies)
         {
             unit.Acted = false;
             unit.Moved = false;
@@ -240,7 +243,7 @@ public class OverworldManager : MonoBehaviour, InputSystem.IOverworldActions
     public IEnumerator ProcessEnemyTurn()
     {
         CameraManager.instance.Zoom(-1);
-        foreach(Unit unit in GameManager.instance.units)
+        foreach(Unit unit in GameManager.instance.enemies)
         {
             if(unit.type == UnitType.enemy)
             {
@@ -249,7 +252,7 @@ public class OverworldManager : MonoBehaviour, InputSystem.IOverworldActions
                 yield return StartCoroutine(enemy.TakeTurn());
             }
         }
-        yield return new WaitForSecondsRealtime(1f);
+        yield return new WaitForSecondsRealtime(.25f);
         CheckEnemyTurnEnd();
         yield return null;
     }

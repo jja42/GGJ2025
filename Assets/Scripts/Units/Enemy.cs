@@ -5,18 +5,16 @@ using UnityEngine;
 public class Enemy : Unit
 {
     Unit target;
+
     IEnumerator GetTarget()
     {
         float distance = Mathf.Infinity;
-        foreach(Unit unit in GameManager.instance.units)
+        foreach(Unit unit in GameManager.instance.allies)
         {
-            if(unit.type == OverworldManager.UnitType.ally)
+            if (Vector3.Distance(transform.position, unit.gameObject.transform.position) < distance)
             {
-                if(Vector3.Distance(transform.position,unit.gameObject.transform.position) < distance) 
-                {
-                    target = unit;
-                    distance = Vector3.Distance(transform.position, unit.gameObject.transform.position);
-                }
+                target = unit;
+                distance = Vector3.Distance(transform.position, unit.gameObject.transform.position);
             }
         }
         print("Target Selected: " + target.Name);
@@ -27,31 +25,24 @@ public class Enemy : Unit
     {
         List<TileSystem.Node> nodes = TileSystem.instance.CalculateMovement(transform.position, speed);
         TileSystem.instance.GenerateMovementHighlights(nodes);
-        TileSystem.Node targetNode = null;
+        TileSystem.Node targetNode = TileSystem.instance.GetNode(target.transform.position);
+        nodes.Clear();
+        nodes = TileSystem.instance.CalculatePath(TileSystem.instance.GetNode(transform.position), targetNode);
+        nodes.Reverse();
 
-        float distance = Vector3.Distance(transform.position, target.gameObject.transform.position);
-        float targetDistance = distance;
-        //Get Node Closest to Target
-        if (target != null)
+        for(int i = 0; i < speed; i++)
         {
-            foreach(TileSystem.Node node in nodes)
-            {
-                Vector3 pos = node.pos;
-                if(Vector3.Distance(target.gameObject.transform.position, pos) < distance)
-                {
-                    distance = Vector3.Distance(target.gameObject.transform.position, pos);
-                    targetNode = node;
-                }
-            }
+            targetNode = nodes[i];
+            print(targetNode.pos);
         }
 
-        if(targetNode == null || distance == targetDistance)
+        if(targetNode == null)
         {
             yield return null;
         }
         else
         {
-            yield return new WaitForSecondsRealtime(.75f);
+            yield return new WaitForSecondsRealtime(.25f);
             OverworldManager.instance.selected_unit = this;
             OverworldManager.instance.MoveSelectedUnit(targetNode.pos);
             while (!Moved)
@@ -86,10 +77,9 @@ public class Enemy : Unit
         if (canAttack)
         {
             TileSystem.instance.GenerateAttackHighlights(nodes);
-            yield return new WaitForSecondsRealtime(.75f);
+            yield return new WaitForSecondsRealtime(.25f);
             OverworldManager.instance.selected_unit = this;
             OverworldManager.instance.Attack(attackTarget);
-            yield return new WaitForSecondsRealtime(.75f);
         }
         else
         {
@@ -109,13 +99,11 @@ public class Enemy : Unit
     public IEnumerator TakeTurn()
     {
         yield return StartCoroutine(GetTarget());
-        yield return new WaitForSecondsRealtime(.25f);
 
         yield return StartCoroutine(AttemptMove());
-        yield return new WaitForSecondsRealtime(.5f);
-
-        StartCoroutine(AttemptAttack());
         yield return new WaitForSecondsRealtime(.25f);
+
+        yield return StartCoroutine(AttemptAttack());
 
         Pass();
 

@@ -6,9 +6,8 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
     public InputSystem input;
-    public List<Unit> units;
-    public int allyCount;
-    public int enemyCount;
+    public List<Unit> allies;
+    public List<Unit> enemies;
     public bool canInterrupt;
     public string loadedStory;
     public AudioClip loadedMusic;
@@ -26,7 +25,8 @@ public class GameManager : MonoBehaviour
         }
         DontDestroyOnLoad(gameObject);
         input = new InputSystem();
-        units = new List<Unit>();
+        allies = new List<Unit>();
+        enemies = new List<Unit>();
         canInterrupt = true;
     }
 
