@@ -64,6 +64,7 @@ public class OverworldManager : MonoBehaviour, InputSystem.IOverworldActions
     {
         GameObject obj = Instantiate(unit_objects[unitIndex], position, Quaternion.identity);
         Unit unit = obj.GetComponent<Unit>();
+        GameManager.instance.units.Add(unit);
         unit.type = type;
         if(type == UnitType.ally)
         {

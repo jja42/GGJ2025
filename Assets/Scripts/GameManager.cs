@@ -6,6 +6,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
     public InputSystem input;
+    public List<Unit> units;
     public List<Unit> allies;
     public List<Unit> enemies;
     public bool canInterrupt;

@@ -90,12 +90,12 @@ public class Unit : MonoBehaviour, IPointerClickHandler
     public void Attack(Unit target)
     {
         Acted = true;
-        target.TakeDamage(damage, this);
+        target.TakeDamage(damage);
         TileSystem.instance.ClearHighlights();
         StartCoroutine(OverworldUI.instance.CombatText(this, target, damage - target.defense));
     }
 
-    public void TakeDamage(int Damage, Unit Attacker)
+    public void TakeDamage(int Damage)
     {
         Damage = Damage - defense;
         health -= Damage;
@@ -103,6 +103,7 @@ public class Unit : MonoBehaviour, IPointerClickHandler
         healthBar.SetHealth(health);
         if (health == 0)
         {
+            GameManager.instance.units.Remove(this);
             if(type == OverworldManager.UnitType.enemy)
             {
                 GameManager.instance.enemies.Remove(this);
@@ -114,5 +115,12 @@ public class Unit : MonoBehaviour, IPointerClickHandler
             TileSystem.instance.UpdateNode(TileSystem.instance.GetNode(transform.position), false, false);
             Destroy(gameObject);
         }
+    }
+
+    public void Heal(int value)
+    {
+        health += value;
+        health = Mathf.Min(health, maxHealth);
+        healthBar.SetHealth(health);
     }
 }
