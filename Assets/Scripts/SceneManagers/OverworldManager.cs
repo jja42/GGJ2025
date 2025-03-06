@@ -45,11 +45,11 @@ public class OverworldManager : MonoBehaviour, InputSystem.IOverworldActions
     //Spawn units at designated positions
     public void LoadUnits()
     {
-        //SpawnUnit(UnitType.ally, 1, new Vector3(-2, -9));
-        //SpawnUnit(UnitType.ally, 2, new Vector3(-4, -10));
-        //SpawnUnit(UnitType.ally, 3, new Vector3(-7, -9));
-        //SpawnUnit(UnitType.ally, 4, new Vector3(-1, -6));
-        //SpawnUnit(UnitType.ally, 5, new Vector3(-7, -7));
+        SpawnUnit(UnitType.ally, 1, new Vector3(-2, -9));
+        SpawnUnit(UnitType.ally, 2, new Vector3(-4, -10));
+        SpawnUnit(UnitType.ally, 3, new Vector3(-7, -9));
+        SpawnUnit(UnitType.ally, 4, new Vector3(-1, -6));
+        SpawnUnit(UnitType.ally, 5, new Vector3(-7, -7));
         SpawnUnit(UnitType.ally, 6, new Vector3(-3, -7));
         SpawnUnit(UnitType.enemy, 0, new Vector3(-16, 2));
         SpawnUnit(UnitType.enemy, 0, new Vector3(15, -2));
